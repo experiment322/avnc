@@ -256,4 +256,7 @@
     <string name="pref_keycode_map">Keycode map</string>
     <string name="pref_touch_test">Touch test</string>
     <string name="pref_key_test">Key test</string>
+
+    <string name="keyboard_service_label">AVNC Keyboard Capture</string>
+    <string name="accessibility_description_text">These permissions are only used to detect when buttons are pressed so they can be sent to PC without triggering default action on your device.\n\AVNC does NOT observe the text you type and does NOT collect your passwords, credit card numbers or any other information.</string>
 </resources>

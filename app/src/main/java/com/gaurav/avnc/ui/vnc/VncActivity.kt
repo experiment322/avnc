@@ -42,6 +42,7 @@ import com.gaurav.avnc.databinding.ActivityVncBinding
 import com.gaurav.avnc.databinding.NoVideoOverlayBinding
 import com.gaurav.avnc.model.ServerProfile
 import com.gaurav.avnc.util.DeviceAuthPrompt
+import com.gaurav.avnc.util.KeyboardAccessibilityService
 import com.gaurav.avnc.util.SamsungDex
 import com.gaurav.avnc.util.enableChildLayoutTransitions
 import com.gaurav.avnc.viewmodel.VncViewModel
@@ -159,6 +160,21 @@ class VncActivity : AppCompatActivity() {
             viewModel.setFrameBufferUpdatesPaused(false)
         else if (wasConnectedWhenStopped)
             viewModel.refreshFrameBuffer()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        KeyboardAccessibilityService.instance?.registerKeyEventListener(
+                keyHandler::onKeyEvent,
+                KeyHandler.IGNORED_KEYCODES,
+        )
+    }
+
+    override fun onPause() {
+        KeyboardAccessibilityService.instance?.unregisterKeyEventListener(
+                keyHandler::onKeyEvent,
+        )
+        super.onPause()
     }
 
     override fun onStop() {
@@ -497,16 +513,23 @@ class VncActivity : AppCompatActivity() {
      * Input
      ************************************************************************************/
 
+    private fun isKeyEventCaptured(event: KeyEvent): Boolean {
+        return KeyboardAccessibilityService.instance?.isKeyEventHandled(event, keyHandler::onKeyEvent) == true
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        return keyHandler.onKeyEvent(event) || workarounds(event) || super.onKeyDown(keyCode, event)
+        return isKeyEventCaptured(event) || keyHandler.onKeyEvent(event) || workarounds(event)
+               || super.onKeyDown(keyCode, event)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
-        return keyHandler.onKeyEvent(event) || workarounds(event) || super.onKeyUp(keyCode, event)
+        return isKeyEventCaptured(event) || keyHandler.onKeyEvent(event) || workarounds(event)
+               || super.onKeyUp(keyCode, event)
     }
 
     override fun onKeyMultiple(keyCode: Int, repeatCount: Int, event: KeyEvent): Boolean {
-        return keyHandler.onKeyEvent(event) || super.onKeyMultiple(keyCode, repeatCount, event)
+        return isKeyEventCaptured(event) || keyHandler.onKeyEvent(event)
+               || super.onKeyMultiple(keyCode, repeatCount, event)
     }
 
     private fun workarounds(keyEvent: KeyEvent): Boolean {

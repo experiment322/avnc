@@ -83,6 +83,16 @@ import com.gaurav.avnc.vnc.XTKeyCode
  *
  */
 class KeyHandler(private val dispatcher: Dispatcher, prefs: AppPreferences) {
+    companion object {
+        val IGNORED_KEYCODES = setOf(
+                KeyEvent.KEYCODE_BACK,
+                KeyEvent.KEYCODE_HOME,
+                KeyEvent.KEYCODE_POWER,
+                KeyEvent.KEYCODE_VOLUME_DOWN,
+                KeyEvent.KEYCODE_VOLUME_MUTE,
+                KeyEvent.KEYCODE_VOLUME_UP,
+        )
+    }
 
     var processedEventObserver: ((KeyEvent) -> Unit)? = null
     var enableMacOSCompatibility = false
@@ -421,8 +431,8 @@ class KeyHandler(private val dispatcher: Dispatcher, prefs: AppPreferences) {
     private fun remapOutEvents(model: EventModel) {
         if (enableMacOSCompatibility) {
             model.outEvents.forEach {
-                if (it.keySym == XKeySym.XK_Alt_L) it.keySym = XKeySym.XK_Meta_L
-                if (it.keySym == XKeySym.XK_Alt_R) it.keySym = XKeySym.XK_Meta_R
+                if (it.keySym == XKeySym.XK_Super_L) it.keySym = XKeySym.XK_Meta_L
+                if (it.keySym == XKeySym.XK_Super_R) it.keySym = XKeySym.XK_Meta_R
             }
         }
     }
@@ -493,6 +503,10 @@ class KeyHandler(private val dispatcher: Dispatcher, prefs: AppPreferences) {
      */
     private fun shouldIgnoreEvent(event: KeyEvent): Boolean {
         val keyCode = event.keyCode
+
+        if (IGNORED_KEYCODES.contains(keyCode)) {
+            return true
+        }
 
         // As if our key-handling wasn't already complex enough, Android
         // decided to mess-up NumLock handling. When any numpad number-key
